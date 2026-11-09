@@ -1,0 +1,41 @@
+---
+- name: Configure Spring Boot Servers
+  hosts: app_servers
+  gather_facts: true
+
+  vars:
+    app_name: springboot-demo
+    app_port: 9090
+    app_directory: /tmp/springboot-app
+
+  tasks:
+    - name: Display server information
+      ansible.builtin.debug:
+        msg: >
+          Server {{ inventory_hostname }}
+          running {{ ansible_distribution }}
+          {{ ansible_distribution_version }}
+
+    - name: Create application directory
+      ansible.builtin.file:
+        path: "{{ app_directory }}"
+        state: directory
+        mode: '0755'
+
+    - name: Create application configuration
+      ansible.builtin.copy:
+        dest: "{{ app_directory }}/application.properties"
+        content: |
+          spring.application.name={{ app_name }}
+          server.port={{ app_port }}
+        mode: '0644'
+
+    - name: Read application configuration
+      ansible.builtin.command:
+        cmd: "cat {{ app_directory }}/application.properties"
+      register: config_result
+      changed_when: false
+
+    - name: Display configuration
+      ansible.builtin.debug:
+        var: config_result.stdout
