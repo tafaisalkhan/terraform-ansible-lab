@@ -1,0 +1,35 @@
+
+---
+- name: Learn Ansible handlers and notifications
+  hosts: app_servers
+  become: true
+  gather_facts: false
+
+  vars:
+    app_dir: /opt/springboot-app
+    app_port: 9090
+
+  tasks:
+    - name: Create application directory
+      ansible.builtin.file:
+        path: "{{ app_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Generate application configuration
+      ansible.builtin.copy:
+        dest: "{{ app_dir }}/application.properties"
+        content: |
+          server.port={{ app_port }}
+          spring.application.name=ansible-demo
+        mode: "0644"
+      notify: Application configuration changed
+
+    - name: Display message after configuration
+      ansible.builtin.debug:
+        msg: "Configuration checked on {{ inventory_hostname }}"
+
+  handlers:
+    - name: Application configuration changed
+      ansible.builtin.debug:
+        msg: "HANDLER: Configuration changed on {{ inventory_hostname }}. Application restart would be required."

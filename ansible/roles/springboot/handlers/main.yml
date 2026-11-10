@@ -1,0 +1,5 @@
+
+---
+- name: Application configuration changed
+  ansible.builtin.debug:
+    msg: "Configuration changed on {{ inventory_hostname }}. Application restart would be required."

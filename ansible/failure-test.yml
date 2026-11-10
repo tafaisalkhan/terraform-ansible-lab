@@ -1,0 +1,48 @@
+
+---
+- name: Test Ansible failure handling
+  hosts: app_servers
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Install package with recovery handling
+      block:
+        - name: Attempt to install invalid Java package
+          ansible.builtin.apt:
+            name: openjdk-99-jdk
+            state: present
+            update_cache: false
+          register: install_result
+          until: install_result is succeeded
+          retries: 2
+          delay: 3
+
+        - name: Installation successful
+          ansible.builtin.debug:
+            msg: "Java installation successful"
+
+      rescue:
+        - name: Display installation failure
+          ansible.builtin.debug:
+            msg: "Installation failed on {{ inventory_hostname }}"
+
+        - name: Show original failure details
+          ansible.builtin.debug:
+            var: ansible_failed_result
+
+        - name: Check installed Java version
+          ansible.builtin.command:
+            cmd: java -version
+          register: java_check
+          changed_when: false
+          failed_when: false
+
+        - name: Display recovery information
+          ansible.builtin.debug:
+            msg: "Existing Java check return code: {{ java_check.rc }}"
+
+      always:
+        - name: Display final status message
+          ansible.builtin.debug:
+            msg: "Installation workflow completed on {{ inventory_hostname }}"

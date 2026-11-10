@@ -1,0 +1,9 @@
+
+---
+- name: Configure Spring Boot application servers
+  hosts: app_servers
+  become: true
+  gather_facts: false
+
+  roles:
+    - springboot

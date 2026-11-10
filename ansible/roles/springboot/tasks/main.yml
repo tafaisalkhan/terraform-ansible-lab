@@ -1,0 +1,24 @@
+
+---
+- name: Create application directory
+  ansible.builtin.file:
+    path: "{{ app_directory }}"
+    state: directory
+    mode: "0755"
+
+- name: Generate Spring Boot configuration
+  ansible.builtin.template:
+    src: application.properties.j2
+    dest: "{{ app_directory }}/application.properties"
+    mode: "0644"
+  notify: Application configuration changed
+
+- name: Read generated configuration
+  ansible.builtin.command:
+    cmd: "cat {{ app_directory }}/application.properties"
+  register: generated_config
+  changed_when: false
+
+- name: Display configuration
+  ansible.builtin.debug:
+    var: generated_config.stdout_lines
